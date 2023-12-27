@@ -1,17 +1,21 @@
-import express from 'express';
-import path, { dirname } from 'path'
-import { fileURLToPath } from 'url';
-import router from './routes/root.js';
+const express = require('express');
+const cors = require('cors')
+const { logger } = require('./middleware/logger');
+const errorHandler = require('./middleware/errorHandler');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+const staticRoute = require('./routes/root');
+const corsOptions = require('./config/corsOptions');
 
-const app = express();
 const PORT = process.env.PORT || 3500;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename)
-
-app.use('/', express.static(path.join(__dirname, '/public')));
-
-app.use('/', router)
+const app = express();
+app.use(cors(corsOptions));
+app.use(logger);
+app.use(express.json());
+app.use(cookieParser());
+app.use('/', express.static(path.join(__dirname, 'public')));
+app.use('/', staticRoute)
 
 app.all('*', (req, res) => {
   res.status(404);
@@ -24,7 +28,9 @@ app.all('*', (req, res) => {
   }
 })
 
+app.use(errorHandler);
+
 app.listen(PORT, () => {
-  console.log(`TakeNotes app running on port ${PORT}`);
+  console.log(`TechNotes app running on port ${PORT}`);
 })
 
